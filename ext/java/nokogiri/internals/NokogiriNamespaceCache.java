@@ -64,10 +64,6 @@ public class NokogiriNamespaceCache {
 
     private Long hashCode(String prefix, String href) {
         long prefix_hash = prefix.hashCode();
-        if (href == null) {
-            System.out.println("################################################################");
-            return 0l;
-        }
         long href_hash = href.hashCode();
         return prefix_hash << 31 | href_hash;
     }
