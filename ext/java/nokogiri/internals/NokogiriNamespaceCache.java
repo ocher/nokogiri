@@ -17,10 +17,10 @@
  * distribute, sublicense, and/or sell copies of the Software, and to
  * permit persons to whom the Software is furnished to do so, subject to
  * the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
@@ -47,23 +47,27 @@ import org.w3c.dom.Node;
 
 /**
  * Cache of namespages of each node. XmlDocument has one cache of this class.
- * 
+ *
  * @author sergio
  * @author Yoko Harada <yokolet@gmail.com>
  */
 public class NokogiriNamespaceCache {
 
-    private List<Long> keys;  // order matters.
-    private Map<Integer, CacheEntry> cache;  // pair of the index of a given key and entry
+    private final List<Long> keys;  // order matters.
+    private final Map<Integer, CacheEntry> cache;  // pair of the index of a given key and entry
     private XmlNamespace defaultNamespace = null;
 
     public NokogiriNamespaceCache() {
         keys = new ArrayList<Long>();
         cache = new LinkedHashMap<Integer, CacheEntry>();
     }
-    
+
     private Long hashCode(String prefix, String href) {
         long prefix_hash = prefix.hashCode();
+        if (href == null) {
+            System.out.println("################################################################");
+            return 0l;
+        }
         long href_hash = href.hashCode();
         return prefix_hash << 31 | href_hash;
     }
@@ -77,11 +81,11 @@ public class NokogiriNamespaceCache {
         if (index != -1) return cache.get(index).namespace;
         return null;
     }
-    
+
     public XmlNamespace getDefault() {
         return defaultNamespace;
     }
-    
+
     public XmlNamespace get(String prefix) {
         if (prefix == null) return defaultNamespace;
         long h = prefix.hashCode();
@@ -94,7 +98,7 @@ public class NokogiriNamespaceCache {
         }
         return null;
     }
-    
+
     public List<XmlNamespace> get(Node node) {
         List<XmlNamespace> namespaces = new ArrayList<XmlNamespace>();
         for (int i=0; i < keys.size(); i++) {
@@ -133,7 +137,7 @@ public class NokogiriNamespaceCache {
         }
         keys.remove(index);
     }
-    
+
     public void clear() {
         // removes namespace declarations from node
         for (int i=0; i < keys.size(); i++) {
@@ -150,7 +154,7 @@ public class NokogiriNamespaceCache {
         cache.clear();
         defaultNamespace = null;
     }
-    
+
     public void replaceNode(Node oldNode, Node newNode) {
         for (int i=0; i < keys.size(); i++) {
             CacheEntry entry = cache.get(i);
@@ -161,9 +165,9 @@ public class NokogiriNamespaceCache {
     }
 
     private class CacheEntry {
-        private XmlNamespace namespace;
+        private final XmlNamespace namespace;
         private Node ownerNode;
-        
+
         CacheEntry(XmlNamespace namespace, Node ownerNode) {
             this.namespace = namespace;
             this.ownerNode = ownerNode;
