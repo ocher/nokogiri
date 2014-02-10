@@ -585,12 +585,21 @@ public class XmlNode extends RubyObject {
             Element element = (Element) node;
 
             final String uri = "http://www.w3.org/2000/xmlns/";
-            String qName =
-                prefix.isNil() ? "xmlns" : "xmlns:" + rubyStringToString(prefix);
+            String qName = prefix.isNil() ? "xmlns" : "xmlns:" + rubyStringToString(prefix);
             element.setAttributeNS(uri, qName, rubyStringToString(href));
         }
         else if (node.getNodeType() == Node.ATTRIBUTE_NODE) namespaceOwner = ((Attr)node).getOwnerElement();
         else namespaceOwner = node.getParentNode();
+
+        // try to search the namespace first
+        if (href.isNil()) {
+            String hrefString = this.findNamespaceHref(context, rubyStringToString(prefix));
+            if (hrefString == null) {
+                return context.nil;
+            }
+            href = context.getRuntime().newString(hrefString);
+        }
+
         XmlNamespace ns = XmlNamespace.createFromPrefixAndHref(namespaceOwner, prefix, href);
         if (node != namespaceOwner) {
             this.node = NokogiriHelpers.renameNode(node, ns.getHref(), ns.getPrefix() + node.getLocalName());
@@ -1226,6 +1235,9 @@ public class XmlNode extends RubyObject {
     }
 
     private String findNamespaceHref(ThreadContext context, String prefix) {
+      if (prefix == null) {
+        prefix = "";
+      }
       XmlNode currentNode = this;
       while(currentNode != document(context)) {
         RubyArray namespaces = (RubyArray) currentNode.namespace_scopes(context);

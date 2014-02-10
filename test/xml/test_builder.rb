@@ -13,6 +13,32 @@ module Nokogiri
         assert_equal 'world', doc.root['abcDef']
       end
 
+      def test_builder_can_inherit_parent_namespace
+        builder = Nokogiri::XML::Builder.new
+        builder.products {
+          builder.parent.default_namespace = "foo"
+          builder.product {
+            builder.parent.default_namespace = nil
+          }
+        }
+        doc = builder.doc
+        ['product', 'products'].each do |n|
+          assert_equal doc.at_xpath("//*[local-name() = '#{n}']").namespace.href, 'foo'
+        end
+      end
+
+      def test_builder_can_handle_namespace_override
+        builder = Nokogiri::XML::Builder.new
+        builder.products('xmlns:foo' => 'bar') {
+          builder.product('xmlns:foo' => 'baz')
+        }
+
+        doc = builder.doc
+        assert_equal doc.at_xpath("//*[local-name() = 'product']").namespaces['xmlns:foo'], 'baz'
+        assert_equal doc.at_xpath("//*[local-name() = 'products']").namespaces['xmlns:foo'], 'bar'
+        assert_nil doc.at_xpath("//*[local-name() = 'products']").namespace
+      end
+
       def test_builder_multiple_nodes
         builder = Nokogiri::XML::Builder.new do |xml|
           0.upto(10) do
